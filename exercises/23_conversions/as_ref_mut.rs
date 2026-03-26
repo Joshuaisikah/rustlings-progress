@@ -5,26 +5,30 @@
 // Obtain the number of bytes (not characters) in the given argument
 // (`.len()` returns the number of bytes in a string).
 // TODO: Add the `AsRef` trait appropriately as a trait bound.
-fn byte_counter<T>(arg: T) -> usize {
+// Obtain the number of bytes (not characters) in the given argument
+fn byte_counter<T: AsRef<str>>(arg: T) -> usize {
     arg.as_ref().len()
 }
 
-// Obtain the number of characters (not bytes) in the given argument.
-// TODO: Add the `AsRef` trait appropriately as a trait bound.
-fn char_counter<T>(arg: T) -> usize {
+// Obtain the number of characters (not bytes) in the given argument
+fn char_counter<T: AsRef<str>>(arg: T) -> usize {
     arg.as_ref().chars().count()
 }
 
-// Squares a number using `as_mut()`.
-// TODO: Add the appropriate trait bound.
-fn num_sq<T>(arg: &mut T) {
-    // TODO: Implement the function body.
+// Squares a number using `as_mut()`
+fn num_sq<T: AsMut<u32>>(arg: &mut T) {
+    let val: &mut u32 = arg.as_mut();
+    *val *= *val;
 }
 
 fn main() {
-    // You can optionally experiment here.
-}
+    let s1 = "Café";
+    println!("Bytes: {}, Chars: {}", byte_counter(s1), char_counter(s1));
 
+    let mut n: Box<u32> = Box::new(4);
+    num_sq(&mut n);
+    println!("Squared: {}", n);
+}
 #[cfg(test)]
 mod tests {
     use super::*;

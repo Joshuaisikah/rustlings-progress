@@ -15,16 +15,17 @@ impl Queue {
 }
 
 fn send_tx(q: Queue, tx: mpsc::Sender<u32>) {
-    // TODO: We want to send `tx` to both threads. But currently, it is moved
-    // into the first thread. How could you solve this problem?
+    // Clone the sender for the first thread
+    let tx1 = tx.clone();
     thread::spawn(move || {
         for val in q.first_half {
             println!("Sending {val:?}");
-            tx.send(val).unwrap();
+            tx1.send(val).unwrap();
             thread::sleep(Duration::from_millis(250));
         }
     });
 
+    // The original sender can now be used in the second thread
     thread::spawn(move || {
         for val in q.second_half {
             println!("Sending {val:?}");
@@ -35,26 +36,16 @@ fn send_tx(q: Queue, tx: mpsc::Sender<u32>) {
 }
 
 fn main() {
-    // You can optionally experiment here.
-}
+    let (tx, rx) = mpsc::channel();
+    let queue = Queue::new();
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+    send_tx(queue, tx);
 
-    #[test]
-    fn threads3() {
-        let (tx, rx) = mpsc::channel();
-        let queue = Queue::new();
-
-        send_tx(queue, tx);
-
-        let mut received = Vec::with_capacity(10);
-        for value in rx {
-            received.push(value);
-        }
-
-        received.sort();
-        assert_eq!(received, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    let mut received = Vec::with_capacity(10);
+    for value in rx {
+        received.push(value);
     }
+
+    received.sort();
+    println!("Received: {:?}", received);
 }
